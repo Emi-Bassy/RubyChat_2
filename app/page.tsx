@@ -5,7 +5,6 @@ import axios from 'axios';
 import ExampleDisplay from './components/Example';
 import ProblemDisplay from './components/ProblemDisplay';
 import CodeInput from './components/CodeInput';
-import { timeStamp } from 'console';
 
 const examples = [
     {id: 1, text: `例題1: if 文は条件が真である場合に実行されるコードを定義します。
@@ -77,12 +76,21 @@ const problems = [
 ];
 
 export default function Home() {
-    const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-    const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+    const [userId, setUserId] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // 認証状態を管理
     const [userCode, setUserCode] = useState('');
     const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
     const [feedback, setFeedback] = useState({ feedback1: '', feedback2: '' });
     const [logs, setLogs] = useState<string[]>([]);  // ログを保存する状態
+    const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+    const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+
+    const handleLogin = () => {
+      if (userId) {
+        localStorage.setItem('userId', userId);
+        setIsAuthenticated(true);
+      }
+    }
 
     useEffect(() => {
         // ローカルストレージからログを読み込む
@@ -142,28 +150,46 @@ export default function Home() {
     };
 
     return (
-        <div className="container mx-auto p-4">
-            <ExampleDisplay exampleText={examples[currentExampleIndex].text} />
-            <ProblemDisplay problemText={problems[currentProblemIndex].text} />
-            <CodeInput userCode={userCode} setUserCode={setUserCode} />
-            <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
+      <div>
+            {!isAuthenticated ? (
+                <div>
+                    <input
+                        type="number"
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
+                        placeholder="ユーザーIDを入力" // 数字を入力するフォーム
+                    />
+                    <button onClick={handleLogin}>ログイン</button> 
+                </div>
+            ) : (
+                // ユーザーが認証された後のコンテンツ
+                <div>
+                    <p>ユーザーID: {userId}</p>
+                    <div className="container mx-auto p-4">
+                    <ExampleDisplay exampleText={examples[currentExampleIndex].text} />
+                    <ProblemDisplay problemText={problems[currentProblemIndex].text} />
+                    <CodeInput userCode={userCode} setUserCode={setUserCode} />
+                    <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
 
-            {feedback.feedback1 && (
-                <>
-                    <h2 className="mt-8 text-lg font-bold">フィードバック1 (コードの解説):</h2>
-                    <p>{feedback.feedback1}</p>
-                </>
+                    {feedback.feedback1 && (
+                        <>
+                            <h2 className="mt-8 text-lg font-bold">フィードバック1 (コードの解説):</h2>
+                            <p>{feedback.feedback1}</p>
+                        </>
+                    )}
+
+                    {feedback.feedback2 && (
+                        <>
+                            <h2 className="mt-4 text-lg font-bold">フィードバック2 (学習過程のコメント):</h2>
+                            <p>{feedback.feedback2}</p>
+                        </>
+                    )}
+
+                    <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
+                    <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>
+                </div>
+                </div>
             )}
-
-            {feedback.feedback2 && (
-                <>
-                    <h2 className="mt-4 text-lg font-bold">フィードバック2 (学習過程のコメント):</h2>
-                    <p>{feedback.feedback2}</p>
-                </>
-            )}
-
-            <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
-            <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>
         </div>
     );
 }
