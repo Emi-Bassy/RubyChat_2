@@ -2,8 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
-import { log } from 'console';
-import { text } from 'stream/consumers';
+
 
 const openai = new OpenAI({
     baseURL: process.env.OPENAI_API_BASE_URL,
