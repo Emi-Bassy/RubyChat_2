@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import ExampleDisplay from './components/Example';
 import ProblemDisplay from './components/ProblemDisplay';
@@ -76,120 +77,179 @@ const problems = [
 ];
 
 export default function Home() {
-    const [userId, setUserId] = useState('');
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // 認証状態を管理
-    const [userCode, setUserCode] = useState('');
-    const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
-    const [feedback, setFeedback] = useState({ feedback1: '', feedback2: '' });
-    const [logs, setLogs] = useState<string[]>([]);  // ログを保存する状態
-    const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-    const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+  const [userID, setUserID] = useState('');
+  const [authenticated, setAuthenticated] = useState(false); // 認証状態を管理
+  const [userCode, setUserCode] = useState('');
+  const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
+  const [feedback, setFeedback] = useState({ feedback1: '', feedback2: '' });
+  const [logs, setLogs] = useState<string[]>([]);  // ログを保存する状態
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+  const router = useRouter();
 
-    const handleLogin = () => {
-      if (userId) {
-        localStorage.setItem('userId', userId);
-        setIsAuthenticated(true);
+  useEffect(() => {
+    localStorage.removeItem('userId')
+    // ローカルストレージから認証状態を読み込み
+    const savedUserID = localStorage.getItem('userID');
+
+    if (savedUserID) {
+      setUserID(savedUserID);
+      setAuthenticated(true);  // 認証状態にする
+    }
+  }, []);
+
+  const handleLogin = () => {
+    if (userID) {
+      localStorage.setItem('userID', userID);  // ローカルにユーザIDを保存
+      setAuthenticated(true);  // 認証済み状態にする
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('userID');  // ユーザIDを削除して認証状態をリセット
+    setUserID('');  // ローカル状態のユーザIDをクリア
+    setAuthenticated(false);  // 認証状態をリセット
+  }
+
+  // 次のプログラミング課題に進む
+  const handleNextProblem = () => {
+      if (currentProblemIndex < problems.length - 1) {
+          setCurrentProblemIndex(currentProblemIndex + 1);
+          setFeedback({ feedback1: '', feedback2: '' });
+          setUserCode('');
       }
+      if (currentExampleIndex < examples.length - 1) {
+          setCurrentExampleIndex(currentExampleIndex + 1);
+      }
+  };
+
+  // 前のプログラミング課題に戻る
+  const handlePrevProblem = () => {
+      if (currentProblemIndex > 0) {
+          setCurrentProblemIndex(currentProblemIndex - 1);
+          setFeedback({ feedback1: '', feedback2: ''});
+          setUserCode('');
+      }
+      if (currentExampleIndex > 0) {
+          setCurrentExampleIndex(currentExampleIndex - 1);
+      }
+  }
+
+  const handleSubmit = async () => {
+    // 現在のコードを過去のコードリストに追加
+    setPastCode([...pastCode, userCode]);
+    const currentTime = new Date().toLocaleTimeString();
+
+    try {
+      const response = await axios.post('/api/chatgpt/', {
+        userID,
+        userCode,
+        problemNumber: problems[currentProblemIndex].id,
+        problemText: problems[currentProblemIndex].text,
+        pastCode: pastCode.join('\n\n'),
+        timestamp: currentTime
+      });
+
+      const { feedback1, feedback2 } = response.data;
+      setFeedback({ feedback1, feedback2});   // Feedbackをセット
+    } catch (error) {
+        console.log("Error generating feedback:", error);
     }
+  };
 
-    useEffect(() => {
-        // ローカルストレージからログを読み込む
-        const storedLogs = localStorage.getItem('logs');
-        if (storedLogs) {
-            setLogs(JSON.parse(storedLogs));
-        }
-    }, []);
-
-    // 次のプログラミング課題に進む
-    const handleNextProblem = () => {
-        if (currentProblemIndex < problems.length - 1) {
-            setCurrentProblemIndex(currentProblemIndex + 1);
-            setFeedback({ feedback1: '', feedback2: '' });
-            setUserCode('');
-        }
-        if (currentExampleIndex < examples.length - 1) {
-            setCurrentExampleIndex(currentExampleIndex + 1);
-        }
-    };
-
-    // 前のプログラミング課題に戻る
-    const handlePrevProblem = () => {
-        if (currentProblemIndex > 0) {
-            setCurrentProblemIndex(currentProblemIndex - 1);
-            setFeedback({ feedback1: '', feedback2: ''});
-            setUserCode('');
-        }
-        if (currentExampleIndex > 0) {
-            setCurrentExampleIndex(currentExampleIndex - 1);
-        }
-    }
-
-    const handleSubmit = async () => {
-        // 現在のコードを過去のコードリストに追加
-        setPastCode([...pastCode, userCode]);
-
-        const currentTime = new Date().toLocaleTimeString();
-
-        try {
-          const response = await axios.post('/api/chatgpt/', {
-            userCode,
-            problemNumber: problems[currentProblemIndex].id,
-            problemText: problems[currentProblemIndex].text,
-            pastCode: pastCode.join('\n\n'),
-            timestamp: currentTime
-        });
-
-        const { feedback1, feedback2 } = response.data;
-            
-        // Feedbackをセット
-        setFeedback({ feedback1, feedback2});
-
-        } catch (error) {
-            console.log("Error generating feedback:", error);
-        }
-    };
-
+  if (!authenticated) {
+    // 認証されていない場合、ユーザID入力フォームを表示
     return (
-      <div>
-            {!isAuthenticated ? (
-                <div>
-                    <input
-                        type="number"
-                        value={userId}
-                        onChange={(e) => setUserId(e.target.value)}
-                        placeholder="ユーザーIDを入力" // 数字を入力するフォーム
-                    />
-                    <button onClick={handleLogin}>ログイン</button> 
-                </div>
-            ) : (
-                // ユーザーが認証された後のコンテンツ
-                <div>
-                    <p>ユーザーID: {userId}</p>
-                    <div className="container mx-auto p-4">
-                    <ExampleDisplay exampleText={examples[currentExampleIndex].text} />
-                    <ProblemDisplay problemText={problems[currentProblemIndex].text} />
-                    <CodeInput userCode={userCode} setUserCode={setUserCode} />
-                    <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
-
-                    {feedback.feedback1 && (
-                        <>
-                            <h2 className="mt-8 text-lg font-bold">フィードバック1 (コードの解説):</h2>
-                            <p>{feedback.feedback1}</p>
-                        </>
-                    )}
-
-                    {feedback.feedback2 && (
-                        <>
-                            <h2 className="mt-4 text-lg font-bold">フィードバック2 (学習過程のコメント):</h2>
-                            <p>{feedback.feedback2}</p>
-                        </>
-                    )}
-
-                    <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
-                    <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>
-                </div>
-                </div>
-            )}
-        </div>
+      <div className='container mx-auto p-4'>
+        <h2>ユーザIDを入力してください</h2>
+        <input
+          type='text'
+          value={userID}
+          onChange={(e) => setUserID(e.target.value)}
+          placeholder='ユーザIDを入力'
+          className='p-2 border'
+        />
+        <button onClick={handleLogin} className='btn btn-primary mt-4'>
+          ログイン
+        </button>
+      </div>
     );
+  }
+
+  // ログイン後
+  return (
+    <div className="container mx-auto p-4">
+      <p>ユーザID: {userID}</p>
+      <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
+      <ProblemDisplay problemText={problems[currentProblemIndex].text} />
+      <CodeInput userCode={userCode} setUserCode={setUserCode} />
+      <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
+
+      {feedback.feedback1 && (
+        <>
+          <h2 className="mt-8">フィードバック1 (コードの解説):</h2>
+          <p>{feedback.feedback1}</p>
+        </>
+      )}
+
+      {feedback.feedback2 && (
+        <>
+          <h2 className="mt-4">フィードバック2 (学習過程のコメント):</h2>
+          <p>{feedback.feedback2}</p>
+        </>
+      )}
+
+      <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
+      <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>  
+      <button onClick={handleLogout} className="btn btn-secondary mt-8">ログアウト</button>
+    </div>
+  );
 }
+
+
+  // 認証済みユーザ向けのコンテンツ
+//   return (
+//     (
+//       <div>
+//           {!setAuthenticated ? (
+//               <div>
+//                   <input
+//                       type="number"
+//                       value={userID}
+//                       onChange={(e) => setUserID(e.target.value)}
+//                       placeholder="ユーザーIDを入力" // 数字を入力するフォーム
+//                   />
+//                   <button onClick={handleLogin}>ログイン</button> // ログインボタン
+//               </div>
+//           ) : (
+//               // ユーザーが認証された後のコンテンツ
+//               <div>
+//                   <p>ユーザーID: {userID}</p>
+//                   <div className="container mx-auto p-4">
+//                     <ExampleDisplay exampleText={examples[currentExampleIndex].text} />
+//                     <ProblemDisplay problemText={problems[currentProblemIndex].text} />
+//                     <CodeInput userCode={userCode} setUserCode={setUserCode} />
+//                     <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
+
+//                     {feedback.feedback1 && (
+//                         <>
+//                             <h2 className="mt-8 text-lg font-bold">フィードバック1 (コードの解説):</h2>
+//                             <p>{feedback.feedback1}</p>
+//                         </>
+//                     )}
+
+//                     {feedback.feedback2 && (
+//                         <>
+//                             <h2 className="mt-4 text-lg font-bold">フィードバック2 (学習過程のコメント):</h2>
+//                             <p>{feedback.feedback2}</p>
+//                         </>
+//                     )}
+
+//                     <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
+//                     <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>              
+//                   </div>
+//               </div>
+//           )}
+//       </div>
+//   ));
+// }

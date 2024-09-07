@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 import { log } from 'console';
+import { text } from 'stream/consumers';
 
 const openai = new OpenAI({
     baseURL: process.env.OPENAI_API_BASE_URL,
@@ -11,8 +12,15 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
     try {
-        const { userCode, problemNumber, timestamp} = await req.json();
+        const { userID, userCode, problemNumber, timestamp} = await req.json();
 
+        if (!userCode || !problemNumber || !timestamp) {
+            return new Response(JSON.stringify({ error: 'Invalid request data' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+ 
         // OpenAI API にコードを送信して回答を生成
         const feedback1Result = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -54,6 +62,15 @@ export async function POST(req: Request) {
         const feedback1 = feedback1Result.choices[0].message?.content?.trim() || '解説を生成できませんでした。';
         const feedback2 = feedback2Result.choices[0].message?.content?.trim() || 'フィードバックを生成できませんでした。';
 
+        // ユーザごとのファイルパスを動的に作成
+        const userLogDir = path.join(process.cwd(), 'logs');
+        const userLogFilePath = path.join(userLogDir, `user${userID}_log.txt`);
+
+        // ログディレクトリが存在しない場合は作成
+        if (!fs.existsSync(userLogDir)) {
+            fs.mkdirSync(userLogDir, { recursive: true });
+        }
+
         // ログをファイルに保存
         const logEntry = `
 ${timestamp}
@@ -69,16 +86,9 @@ ${feedback2}
 
 ------------------------
 `;
-        const logFilePath = path.join(process.cwd(), 'logs', 'user_logs.txt');
-        const logDir = path.dirname(logFilePath);
-
-        // ログディレクトリが存在しない場合は作成
-        if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir, { recursive: true });
-        }
 
         // ログをファイルに追記
-        fs.appendFileSync(logFilePath, logEntry, 'utf-8');
+        fs.appendFileSync(userLogFilePath, logEntry, 'utf-8');
     
         return new Response(JSON.stringify({ feedback1, feedback2 }), {
             status: 200,
