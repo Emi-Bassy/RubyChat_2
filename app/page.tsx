@@ -108,6 +108,9 @@ export default function Home() {
   const handleLogout = () => {
     localStorage.removeItem('userID');  // ユーザIDを削除して認証状態をリセット
     setUserID('');  // ローカル状態のユーザIDをクリア
+    setUserCode('');
+    setPastCode([]);
+    setFeedback({ feedback1: '', feedback2: '' });
     setAuthenticated(false);  // 認証状態をリセット
   }
 
@@ -139,6 +142,7 @@ export default function Home() {
     // 現在のコードを過去のコードリストに追加
     setPastCode([...pastCode, userCode]);
     const currentTime = new Date().toLocaleTimeString();
+    const userID = localStorage.getItem('userID'); // ローカルストレージからユーザーIDを取得
 
     try {
       const response = await axios.post('/api/chatgpt/', {
@@ -205,51 +209,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-  // 認証済みユーザ向けのコンテンツ
-//   return (
-//     (
-//       <div>
-//           {!setAuthenticated ? (
-//               <div>
-//                   <input
-//                       type="number"
-//                       value={userID}
-//                       onChange={(e) => setUserID(e.target.value)}
-//                       placeholder="ユーザーIDを入力" // 数字を入力するフォーム
-//                   />
-//                   <button onClick={handleLogin}>ログイン</button> // ログインボタン
-//               </div>
-//           ) : (
-//               // ユーザーが認証された後のコンテンツ
-//               <div>
-//                   <p>ユーザーID: {userID}</p>
-//                   <div className="container mx-auto p-4">
-//                     <ExampleDisplay exampleText={examples[currentExampleIndex].text} />
-//                     <ProblemDisplay problemText={problems[currentProblemIndex].text} />
-//                     <CodeInput userCode={userCode} setUserCode={setUserCode} />
-//                     <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
-
-//                     {feedback.feedback1 && (
-//                         <>
-//                             <h2 className="mt-8 text-lg font-bold">フィードバック1 (コードの解説):</h2>
-//                             <p>{feedback.feedback1}</p>
-//                         </>
-//                     )}
-
-//                     {feedback.feedback2 && (
-//                         <>
-//                             <h2 className="mt-4 text-lg font-bold">フィードバック2 (学習過程のコメント):</h2>
-//                             <p>{feedback.feedback2}</p>
-//                         </>
-//                     )}
-
-//                     <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
-//                     <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>              
-//                   </div>
-//               </div>
-//           )}
-//       </div>
-//   ));
-// }
