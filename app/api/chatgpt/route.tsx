@@ -2,11 +2,16 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
+import { Pool } from 'pg';
 
 
 const openai = new OpenAI({
     baseURL: process.env.OPENAI_API_BASE_URL,
     apiKey: process.env.OPENAI_API_KEY,
+});
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL, // Vercelの環境変数から取得
 });
 
 export async function POST(req: Request) {
@@ -61,6 +66,12 @@ export async function POST(req: Request) {
         const feedback1 = feedback1Result.choices[0].message?.content?.trim() || '解説を生成できませんでした。';
         const feedback2 = feedback2Result.choices[0].message?.content?.trim() || 'フィードバックを生成できませんでした。';
 
+        // PostgreSQL にログを保存
+        await pool.query(
+            'INSERT INTO user_logs (user_id, problem_number, user_code, feedback1, feedback2) VALUES ($1, $2, $3, $4, $5)',
+            [userID, problemNumber, userCode, feedback1, feedback2]
+        )
+        
         // ユーザごとのファイルパスを動的に作成
         const userLogDir = path.join(process.cwd(), 'logs');
         const userLogFilePath = path.join(userLogDir, `user${userID}_log.txt`);

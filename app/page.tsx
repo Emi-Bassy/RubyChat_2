@@ -145,7 +145,7 @@ export default function Home() {
     const userID = localStorage.getItem('userID'); // ローカルストレージからユーザーIDを取得
 
     try {
-      const response = await axios.post('/api/chatgpt/', {
+      const response = await axios.post('/api/chatgpt', {
         userID,
         userCode,
         problemNumber: problems[currentProblemIndex].id,
