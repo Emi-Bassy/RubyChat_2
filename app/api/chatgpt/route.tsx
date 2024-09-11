@@ -12,6 +12,9 @@ const openai = new OpenAI({
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL, // Vercelの環境変数から取得
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 export async function POST(req: Request) {
@@ -71,7 +74,7 @@ export async function POST(req: Request) {
             'INSERT INTO user_logs (user_id, problem_number, user_code, feedback1, feedback2) VALUES ($1, $2, $3, $4, $5)',
             [userID, problemNumber, userCode, feedback1, feedback2]
         )
-        
+
         // ユーザごとのファイルパスを動的に作成
         const userLogDir = path.join(process.cwd(), 'logs');
         const userLogFilePath = path.join(userLogDir, `user${userID}_log.txt`);
