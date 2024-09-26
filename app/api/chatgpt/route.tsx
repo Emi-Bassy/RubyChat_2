@@ -31,6 +31,9 @@ export async function POST(req: Request) {
                 headers: { 'Content-Type': 'application/json' },
             });
         }
+
+        // ユーザIDを整数に変換
+        const userIdNumber = parseInt(userID, 10);
  
         // OpenAI API にコードを送信して回答を生成
         const feedback1Result = await openai.chat.completions.create({
@@ -50,29 +53,38 @@ export async function POST(req: Request) {
         presence_penalty: 0,
         });
 
-        // OpenAI API にコードを送信して回答を生成
-        const feedback2Result = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: "system", content: "You are a supportive programming coach." },
-                { role: "user", content: `
-                学習者の取り組みについて、例1-3を参考にフィードバックをください。
-                ・指定のトークン数で収めてください
-                ・例1: この調子で進めてください 
-                ・例2: 前よりもSyntax Errorを起こすことが少なくなりました。文方知識が身についてきているしるしです！
-                ・例3: 前は正しく条件分岐を行えていました。あなたならここで間違えるはずがないですよ。落ち着いて再度解いてみてください！
-                \n\n${userCode}` }
-            ],
-            temperature: 0.9,
-            max_tokens: 300,
-            frequency_penalty: 0.5,
-            presence_penalty: 0,
-        });
 
         // 生成されたコード解説の回答を取得
         const feedback1 = feedback1Result.choices[0].message?.content?.trim() || '解説を生成できませんでした。';
-        const feedback2 = feedback2Result.choices[0].message?.content?.trim() || 'フィードバックを生成できませんでした。';
 
+        // feedback2 を初期化
+        let feedback2 = '';
+
+        // ユーザIDが偶数の場合のみ feedback2 を生成
+        if (userIdNumber % 2 === 0) {
+            const feedback2Result = await openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: "system", content: "You are a supportive programming coach." },
+                    { role: "user", content: `
+                    学習者の取り組みについて、例1-3を参考にフィードバックをください。
+                    ・指定のトークン数で収めてください
+                    ・回答が正しい場合には、例1-2を参考にフィードバックをください
+                    ・回答が誤っている場合でも、誤りを伝えた上で、その中でも良かった部分を示してください
+                    ・答えのコードは教えずに解説してください
+                    ・例1: この調子で進めてください 
+                    ・例2: 前よりもSyntax Errorを起こすことが少なくなりました。文法知識が身についてきているしるしです！
+                    ・例3: 前は正しく条件分岐を行えていました。あなたならここで間違えるはずがないですよ。落ち着いて再度解いてみてください！
+                    \n\n${userCode}` }
+                ],
+                temperature: 0.9,
+                max_tokens: 300,
+                frequency_penalty: 0.5,
+                presence_penalty: 0,
+            });
+
+            feedback2 = feedback2Result.choices[0].message?.content?.trim() || 'フィードバックを生成できませんでした。';
+        }
         // PostgreSQL にログを保存
         await pool.query(
             'INSERT INTO user_logs (user_id, problem_number, user_code, feedback1, feedback2) VALUES ($1, $2, $3, $4, $5)',
