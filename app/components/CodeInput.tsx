@@ -12,7 +12,7 @@ const CodeInput: React.FC<CodeInputProps> = ({ userCode, setUserCode }) => {
                 value={userCode}
                 onChange={(e) => setUserCode(e.target.value)}
                 placeholder="ここにコードを貼り付けてください"
-                className="w-full h-full p-2 border rounded-md"
+                className="w-full h-48 p-2 border rounded-md"
             />
         </div>
     );
