@@ -197,14 +197,14 @@ export default function Home() {
 
       {feedback.feedback1 && (
         <>
-          <h2 className="mt-8">フィードバック1 (コードの解説):</h2>
+          <h2 className="mt-8">＜解説＞</h2>
           <p>{feedback.feedback1}</p>
         </>
       )}
 
       {feedback.feedback2 && (
         <>
-          <h2 className="mt-4">フィードバック2 (学習過程のコメント):</h2>
+          <h2 className="mt-4">＜アドバイス＞</h2>
           <p>{feedback.feedback2}</p>
         </>
       )}
