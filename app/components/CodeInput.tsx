@@ -21,7 +21,7 @@ const CodeInput: React.FC<CodeInputProps> = ({ userCode, setUserCode }) => {
             fontSize={14}                 // フォントサイズの設定
             value={userCode}              // 現在のコード
             width="100%"                  // 幅を設定
-            height="250px"                // 高さを設定
+            height="200px"                // 高さを設定
             setOptions={{
                 enableBasicAutocompletion: true,
                 enableLiveAutocompletion: true,
