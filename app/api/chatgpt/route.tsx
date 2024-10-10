@@ -63,7 +63,7 @@ export async function POST(req: Request) {
                 ` }
         ],
         temperature: 0.9,
-        max_tokens: 300,
+        max_tokens: 250,
         frequency_penalty: 0.5,
         presence_penalty: 0,
         });
@@ -138,7 +138,7 @@ export async function POST(req: Request) {
                     { role: "user", content: feedback2Prompt }
                 ],
                 temperature: 0.9,
-                max_tokens: 300,
+                max_tokens: 250,
                 frequency_penalty: 0.5,
                 presence_penalty: 0,
             });
