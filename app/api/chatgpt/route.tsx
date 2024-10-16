@@ -23,7 +23,7 @@ const pool = new Pool({
 
 export async function POST(req: Request) {
     try {
-        const { userID, userCode, problemNumber, problemText, pastCode, timestamp} = await req.json();
+        const { userID, userCode, executionResult, problemNumber, problemText, pastCode, timestamp} = await req.json();
 
         if (!userCode || !problemNumber || !timestamp) {
             return new Response(JSON.stringify({ error: 'Invalid request data' }), {
@@ -49,11 +49,13 @@ export async function POST(req: Request) {
 
                 #Steps
                 1. 問題文 ${problemText} を受け取ります
-                2. 現在のコード ${userCode} の正誤を判定します
-                3. 最低限のコードが書けていれば正解にします
-                4. 省略可能な then や ; はなくても正解とし、解説には含めません
-                5. 文頭に、正解の場合は「正解です」、不正解の場合は「不足があります」と明記します
-                6. 答えのコードは教えずに解説を作成します
+                2. 現在のコード ${userCode} を受け取ります
+                3. 現在の回答 ${executionResult} を受け取ります
+                4. ${userCode} と ${executionResult} から正誤を判定します
+                5. 最低限のコードが書けていれば正解にします
+                6. 省略可能な then や ; はなくても正解とし、解説には含めません
+                7. 文頭に、正解の場合は「正解です」、不正解の場合は「不足があります」と明記します
+                8. 答えのコードは教えずに解説を作成します
 
                 #Note
                 - 問題文と現在のコードを重複して解説に含めないでください

@@ -151,9 +151,11 @@ export default function Home() {
     const userID = localStorage.getItem('userID'); // ローカルストレージからユーザーIDを取得
 
     try {
+      const executionResult = "実行結果の例"; // 実際のコード実行結果に置き換え
       const response = await axios.post('/api/chatgpt', {
         userID,
         userCode,
+        executionResult,
         problemNumber: problems[currentProblemIndex].id,
         problemText: problems[currentProblemIndex].text,
         pastCode: pastCode.join('\n\n'),
