@@ -6,7 +6,7 @@ import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/ext-language_tools"
 
 import fs from "fs/promises";
-import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/node";
+import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/browser";
 
 interface CodeInputProps {
     userCode: string;
