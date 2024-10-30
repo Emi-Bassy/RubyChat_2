@@ -144,6 +144,11 @@ export default function Home() {
       }
   }
 
+  const executeRubyCode = async (code: string) => {
+    const response = await axios.post('/api/executeRuby', { code });
+    return response.data.result;
+  };
+
   const handleSubmit = async () => {
     // 現在のコードを過去のコードリストに追加
     setPastCode([...pastCode, userCode]);
@@ -151,11 +156,11 @@ export default function Home() {
     const userID = localStorage.getItem('userID'); // ローカルストレージからユーザーIDを取得
 
     try {
-      const executionResult = "実行結果の例"; // 実際のコード実行結果に置き換え
+      const rubyResult = await executeRubyCode(userCode);  // Ruby実行結果を取得
       const response = await axios.post('/api/chatgpt', {
         userID,
         userCode,
-        executionResult,
+        rubyResult,
         problemNumber: problems[currentProblemIndex].id,
         problemText: problems[currentProblemIndex].text,
         pastCode: pastCode.join('\n\n'),
