@@ -1,11 +1,10 @@
-"use client"
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import ExampleDisplay from './components/Example';
 import ProblemDisplay from './components/ProblemDisplay';
 import CodeInput from './components/CodeInput';
+import { CodeExecute } from './components/CodeExcute';
 
 const examples = [
   {id: 1, text: `例題1: if 文は条件が真である場合に実行されるコードを定義します
@@ -199,7 +198,9 @@ export default function Home() {
       <p>ユーザID: {userID}</p>
       <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
       <ProblemDisplay problemText={problems[currentProblemIndex].text} />
-      <CodeInput userCode={userCode} setUserCode={setUserCode} />
+      <CodeExecute userCode={userCode}>
+        <CodeInput userCode={userCode} setUserCode={setUserCode} />
+      </CodeExecute>
       <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
 
       {feedback.feedback1 && (
