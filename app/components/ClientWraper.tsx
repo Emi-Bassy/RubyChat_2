@@ -81,145 +81,148 @@ const problems = [
         「○○の平方は○○です」という形で表示してください` },
 ];
 
-export default function ClientWrapper() {
-    const [userID, setUserID] = useState('');
-const [authenticated, setAuthenticated] = useState(false); // 認証状態を管理
-const [userCode, setUserCode] = useState('');
-const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
-const [feedback, setFeedback] = useState({ feedback1: '', feedback2: '' });
-const [logs, setLogs] = useState<string[]>([]);  // ログを保存する状態
-const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
-const router = useRouter();
-
-useEffect(() => {
-  localStorage.removeItem('userId')
-  // ローカルストレージから認証状態を読み込み
-  const savedUserID = localStorage.getItem('userID');
-
-  if (savedUserID) {
-    setUserID(savedUserID);
-    setAuthenticated(true);  // 認証状態にする
-  }
-}, []);
-
-const handleLogin = () => {
-  if (userID) {
-    localStorage.setItem('userID', userID);  // ローカルにユーザIDを保存
-    setAuthenticated(true);  // 認証済み状態にする
-  }
+interface ClientWraperProps{
+  vm: any;
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('userID');  // ユーザIDを削除して認証状態をリセット
-  setUserID('');  // ローカル状態のユーザIDをクリア
-  setUserCode('');
-  setPastCode([]);
-  setFeedback({ feedback1: '', feedback2: '' });
-  setAuthenticated(false);  // 認証状態をリセット
-}
+export default function ClientWrapper({ vm }: ClientWraperProps) {
+  const [userID, setUserID] = useState('');
+  const [authenticated, setAuthenticated] = useState(false); // 認証状態を管理
+  const [userCode, setUserCode] = useState('');
+  const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
+  const [feedback, setFeedback] = useState({ feedback1: '', feedback2: '' });
+  const [logs, setLogs] = useState<string[]>([]);  // ログを保存する状態
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+  const router = useRouter();
 
-// 次のプログラミング課題に進む
-const handleNextProblem = () => {
-    if (currentProblemIndex < problems.length - 1) {
-        setCurrentProblemIndex(currentProblemIndex + 1);
-        setFeedback({ feedback1: '', feedback2: '' });
-        setUserCode('');
+  useEffect(() => {
+    localStorage.removeItem('userId')
+    // ローカルストレージから認証状態を読み込み
+    const savedUserID = localStorage.getItem('userID');
+
+    if (savedUserID) {
+      setUserID(savedUserID);
+      setAuthenticated(true);  // 認証状態にする
     }
-    if (currentExampleIndex < examples.length - 1) {
-        setCurrentExampleIndex(currentExampleIndex + 1);
+  }, []);
+
+  const handleLogin = () => {
+    if (userID) {
+      localStorage.setItem('userID', userID);  // ローカルにユーザIDを保存
+      setAuthenticated(true);  // 認証済み状態にする
     }
-};
-
-// 前のプログラミング課題に戻る
-const handlePrevProblem = () => {
-    if (currentProblemIndex > 0) {
-        setCurrentProblemIndex(currentProblemIndex - 1);
-        setFeedback({ feedback1: '', feedback2: ''});
-        setUserCode('');
-    }
-    if (currentExampleIndex > 0) {
-        setCurrentExampleIndex(currentExampleIndex - 1);
-    }
-}
-
-const executeRubyCode = async (code: string) => {
-  const response = await axios.post('/api/executeRuby', { code });
-  return response.data.result;
-};
-
-const handleSubmit = async () => {
-  // 現在のコードを過去のコードリストに追加
-  setPastCode([...pastCode, userCode]);
-  const currentTime = new Date().toLocaleTimeString();
-  const userID = localStorage.getItem('userID'); // ローカルストレージからユーザーIDを取得
-
-  try {
-    const rubyResult = await executeRubyCode(userCode);  // Ruby実行結果を取得
-    const response = await axios.post('/api/chatgpt', {
-      userID,
-      userCode,
-      rubyResult,
-      problemNumber: problems[currentProblemIndex].id,
-      problemText: problems[currentProblemIndex].text,
-      pastCode: pastCode.join('\n\n'),
-      timestamp: currentTime
-    });
-
-    const { feedback1, feedback2 } = response.data;
-    setFeedback({ feedback1, feedback2});   // Feedbackをセット
-  } catch (error) {
-      console.log("Error generating feedback:", error);
   }
-};
 
-if (!authenticated) {
-  // 認証されていない場合、ユーザID入力フォームを表示
+  const handleLogout = () => {
+    localStorage.removeItem('userID');  // ユーザIDを削除して認証状態をリセット
+    setUserID('');  // ローカル状態のユーザIDをクリア
+    setUserCode('');
+    setPastCode([]);
+    setFeedback({ feedback1: '', feedback2: '' });
+    setAuthenticated(false);  // 認証状態をリセット
+  }
+
+  // 次のプログラミング課題に進む
+  const handleNextProblem = () => {
+      if (currentProblemIndex < problems.length - 1) {
+          setCurrentProblemIndex(currentProblemIndex + 1);
+          setFeedback({ feedback1: '', feedback2: '' });
+          setUserCode('');
+      }
+      if (currentExampleIndex < examples.length - 1) {
+          setCurrentExampleIndex(currentExampleIndex + 1);
+      }
+  };
+
+  // 前のプログラミング課題に戻る
+  const handlePrevProblem = () => {
+      if (currentProblemIndex > 0) {
+          setCurrentProblemIndex(currentProblemIndex - 1);
+          setFeedback({ feedback1: '', feedback2: ''});
+          setUserCode('');
+      }
+      if (currentExampleIndex > 0) {
+          setCurrentExampleIndex(currentExampleIndex - 1);
+      }
+  }
+
+  const executeRubyCode = async (code: string) => {
+    const response = await axios.post('/api/executeRuby', { code });
+    return response.data.result;
+  };
+
+  const handleSubmit = async () => {
+    // 現在のコードを過去のコードリストに追加
+    setPastCode([...pastCode, userCode]);
+    const currentTime = new Date().toLocaleTimeString();
+    const userID = localStorage.getItem('userID'); // ローカルストレージからユーザーIDを取得
+
+    try {
+      const rubyResult = await executeRubyCode(userCode);  // Ruby実行結果を取得
+      const response = await axios.post('/api/chatgpt', {
+        userID,
+        userCode,
+        rubyResult,
+        problemNumber: problems[currentProblemIndex].id,
+        problemText: problems[currentProblemIndex].text,
+        pastCode: pastCode.join('\n\n'),
+        timestamp: currentTime
+      });
+
+      const { feedback1, feedback2 } = response.data;
+      setFeedback({ feedback1, feedback2});   // Feedbackをセット
+    } catch (error) {
+        console.log("Error generating feedback:", error);
+    }
+  };
+
+  if (!authenticated) {
+    // 認証されていない場合、ユーザID入力フォームを表示
+    return (
+      <div className='container mx-auto p-4'>
+        <h2>ユーザIDを入力してください</h2>
+        <input
+          type='text'
+          value={userID}
+          onChange={(e) => setUserID(e.target.value)}
+          placeholder='ユーザIDを入力'
+          className='p-2 border'
+        />
+        <button onClick={handleLogin} className='btn btn-primary mt-4'>
+          ログイン
+        </button>
+      </div>
+    );
+  }
+
+  // ログイン後
   return (
-    <div className='container mx-auto p-4'>
-      <h2>ユーザIDを入力してください</h2>
-      <input
-        type='text'
-        value={userID}
-        onChange={(e) => setUserID(e.target.value)}
-        placeholder='ユーザIDを入力'
-        className='p-2 border'
-      />
-      <button onClick={handleLogin} className='btn btn-primary mt-4'>
-        ログイン
-      </button>
+    <div className="container mx-auto p-4">
+      <p>ユーザID: {userID}</p>
+      <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
+      <ProblemDisplay problemText={problems[currentProblemIndex].text} />
+      <CodeInput userCode={userCode} setUserCode={setUserCode} onRunCode={vm} />
+      {vm && <CodeExecute userCode={userCode} vm={vm} />}
+      <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
+
+      {feedback.feedback1 && (
+        <>
+          <h2 className="mt-8">＜解説＞</h2>
+          <p>{feedback.feedback1}</p>
+        </>
+      )}
+
+      {feedback.feedback2 && (
+        <>
+          <h2 className="mt-4">＜アドバイス＞</h2>
+          <p>{feedback.feedback2}</p>
+        </>
+      )}
+
+      <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
+      <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>  
+      <button onClick={handleLogout} className="btn btn-secondary mt-8">ログアウト</button>
     </div>
   );
-}
-
-// ログイン後
-return (
-  <div className="container mx-auto p-4">
-    <p>ユーザID: {userID}</p>
-    <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
-    <ProblemDisplay problemText={problems[currentProblemIndex].text} />
-    <CodeExecute userCode={userCode}>
-      <CodeInput userCode={userCode} setUserCode={setUserCode} />
-    </CodeExecute>
-    <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
-
-    {feedback.feedback1 && (
-      <>
-        <h2 className="mt-8">＜解説＞</h2>
-        <p>{feedback.feedback1}</p>
-      </>
-    )}
-
-    {feedback.feedback2 && (
-      <>
-        <h2 className="mt-4">＜アドバイス＞</h2>
-        <p>{feedback.feedback2}</p>
-      </>
-    )}
-
-    <button onClick={handlePrevProblem} className="btn btn-secondary mt-8">前の問題へ</button>
-    <button onClick={handleNextProblem} className="btn btn-secondary mt-8">次の問題へ</button>  
-    <button onClick={handleLogout} className="btn btn-secondary mt-8">ログアウト</button>
-  </div>
-);
 }
