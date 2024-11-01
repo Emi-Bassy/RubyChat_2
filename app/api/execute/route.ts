@@ -5,12 +5,12 @@ export async function POST(request: NextRequest) {
     // GET /api/users リクエストの処理
     const url = request.url;
     const origin = new URL(url).origin;
-    console.log(origin);
     let result = '';
     const params = await request.json();
     const script = params.script
     const response = await fetch(`https://ruby-chat-2-m14yuhbur-emi-bassys-projects.vercel.app/ruby.wasm`); // ローカルのWASMファイルを指定
     const wasmArrayBuffer = await response.arrayBuffer();
+    console.log(wasmArrayBuffer);
     const module = await WebAssembly.compile(wasmArrayBuffer);
     const rubyVm = await DefaultRubyVM(module);
     // rubyVm.vm.eval(`eval(${script})`)
