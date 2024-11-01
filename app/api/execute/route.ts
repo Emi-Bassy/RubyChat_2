@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     let result = '';
     const params = await request.json();
     const script = params.script
-    const response = await fetch(`${origin}/ruby.wasm`); // ローカルのWASMファイルを指定
+    const response = await fetch(`https://ruby-chat-2-m14yuhbur-emi-bassys-projects.vercel.app/ruby.wasm`); // ローカルのWASMファイルを指定
     const wasmArrayBuffer = await response.arrayBuffer();
     const module = await WebAssembly.compile(wasmArrayBuffer);
     const rubyVm = await DefaultRubyVM(module);
