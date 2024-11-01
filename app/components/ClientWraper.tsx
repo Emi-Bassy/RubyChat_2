@@ -60,6 +60,7 @@ interface ClientWraperProps{
 export default function ClientWrapper({ vm }: ClientWraperProps) {
   const [userID, setUserID] = useState('');
   const [wasmInstance, setWasmInstance] = useState<WebAssembly.Exports | null>(null);
+  const [rubyVM, setRubyVM] = useState<any>(null);
   const [authenticated, setAuthenticated] = useState(false); // 認証状態を管理
   const [userCode, setUserCode] = useState('');
   const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
@@ -80,8 +81,9 @@ export default function ClientWrapper({ vm }: ClientWraperProps) {
     }
 
     const fetchWasm = async () => {
-      const loadedVm = await loadWasm();
-      setWasmInstance(loadedVm);
+      const { rubyVM, exports } = await loadWasm();
+      setWasmInstance(exports); // WASMのエクスポートを状態にセット
+      setRubyVM(rubyVM); // RubyVMのインスタンスを状態にセット
     };
     fetchWasm();
   }, []);
