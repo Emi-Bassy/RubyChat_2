@@ -11,10 +11,9 @@ import "ace-builds/src-noconflict/ext-language_tools"
 interface CodeInputProps {
     userCode: string;
     setUserCode: React.Dispatch<React.SetStateAction<string>>;
-    onRunCode: () => void;
 }
 
-export const CodeInput: React.FC<CodeInputProps> = ({ userCode, setUserCode, onRunCode }) => {
+export const CodeInput: React.FC<CodeInputProps> = ({ userCode, setUserCode }) => {
     return (
         <div className="mt-4">
             <AceEditor
@@ -32,9 +31,6 @@ export const CodeInput: React.FC<CodeInputProps> = ({ userCode, setUserCode, onR
                     showLineNumbers: true,
                 }}
             />
-            <button onClick={onRunCode} className="btn btn-primary mt-4">
-                実行
-            </button>
         </div>
     );
 };

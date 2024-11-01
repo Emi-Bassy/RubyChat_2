@@ -7,7 +7,7 @@ import ExampleDisplay from './/Example';
 import ProblemDisplay from './ProblemDisplay';
 import CodeInput from './CodeInput';
 import { CodeExecute } from './CodeExcute';
-import { loadWasm } from './wasmLoader';
+// import { loadWasm } from './wasmLoader';
 
 const examples = [
     {id: 1, text: `例題1: if 文は条件が真である場合に実行されるコードを定義します
@@ -57,7 +57,7 @@ interface ClientWraperProps{
   vm: any;
 }
 
-export default function ClientWrapper({ vm }: ClientWraperProps) {
+export default function ClientWrapper() {
   const [userID, setUserID] = useState('');
   const [wasmInstance, setWasmInstance] = useState<WebAssembly.ExportValue | null>(null);
   const [rubyVM, setRubyVM] = useState<any>(null);
@@ -79,13 +79,6 @@ export default function ClientWrapper({ vm }: ClientWraperProps) {
       setUserID(savedUserID);
       setAuthenticated(true);  // 認証状態にする
     }
-
-    const fetchWasm = async () => {
-      const { rubyVM, exports } = await loadWasm();
-      setWasmInstance(exports); // WASMのエクスポートを状態にセット
-      setRubyVM(rubyVM); // RubyVMのインスタンスを状態にセット
-    };
-    fetchWasm();
   }, []);
 
   const handleLogin = () => {
@@ -183,8 +176,8 @@ export default function ClientWrapper({ vm }: ClientWraperProps) {
       <p>ユーザID: {userID}</p>
       <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
       <ProblemDisplay problemText={problems[currentProblemIndex].text} />
-      <CodeInput userCode={userCode} setUserCode={setUserCode} onRunCode={vm} />
-      {vm && <CodeExecute userCode={userCode} vm={wasmInstance} />}
+      <CodeInput userCode={userCode} setUserCode={setUserCode} />
+      <CodeExecute userCode={userCode}/>
       <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
 
       {feedback.feedback1 && (

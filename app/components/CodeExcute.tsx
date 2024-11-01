@@ -3,21 +3,30 @@ import { useState } from "react";
 
 interface CodeExecuteProps {
   userCode: string;
-  vm: any;
 }
 declare global {
   interface Window {
     RubyVM: any;
   }
 }
-export async function CodeExecute({ userCode, vm }: CodeExecuteProps) {
+export function CodeExecute({ userCode }: CodeExecuteProps) {
   const [output, setOutput] = useState("");
 
   const handleRunCode = async () => {
     try {
-      vm.eval(userCode);
-      const result = vm.eval(`$stdout.string`).toString();
-      setOutput(result);
+      const result = await fetch('http://localhost:3000/api/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({script: userCode}) 
+      })
+      if (!result.ok) { 
+        console.error(result.status)
+        return 
+      }
+      const json = await result.json();
+      setOutput(json.result);
   } catch (error: any) {
       setOutput(`エラー: ${error.message}`);
   }

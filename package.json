@@ -15,6 +15,7 @@
     "@monaco-editor/react": "^4.6.0",
     "@protobufjs/utf8": "^1.1.0",
     "@ruby/3.3-wasm-wasi": "^2.6.2",
+    "@ruby/head-wasm-wasi": "^2.6.2",
     "@ruby/wasm-wasi": "^2.6.2",
     "@supabase/supabase-js": "^2.45.4",
     "ace-builds": "^1.36.2",
