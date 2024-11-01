@@ -14,7 +14,7 @@ export function CodeExecute({ userCode }: CodeExecuteProps) {
 
   const handleRunCode = async () => {
     try {
-      const result = await fetch('http://localhost:3000/api/execute', {
+      const result = await fetch('/api/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -27,15 +27,15 @@ export function CodeExecute({ userCode }: CodeExecuteProps) {
       }
       const json = await result.json();
       setOutput(json.result);
-  } catch (error: any) {
-      setOutput(`エラー: ${error.message}`);
-  }
+    } catch (error: any) {
+        setOutput(`エラー: ${error.message}`);
+    }
   };
 
   return (
     <div>
       <button onClick={handleRunCode}>実行</button>
-      <div>結果： {output}</div>
+      <div style={{whiteSpace: "pre-wrap"}}>結果： {output}</div>
     </div>
   );
 }
