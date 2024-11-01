@@ -82,7 +82,7 @@ export default function ClientWrapper({ vm }: ClientWraperProps) {
 
     const fetchWasm = async () => {
       const { rubyVM, exports } = await loadWasm();
-      setWasmInstance(exports); // WASMのエクスポートを状態にセット
+      setWasmInstance(exports as Exports); // WASMのエクスポートを状態にセット
       setRubyVM(rubyVM); // RubyVMのインスタンスを状態にセット
     };
     fetchWasm();
