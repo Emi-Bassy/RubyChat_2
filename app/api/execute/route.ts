@@ -5,6 +5,7 @@ export async function POST(request: NextRequest) {
     // GET /api/users リクエストの処理
     const url = request.url;
     const origin = new URL(url).origin;
+    console.log(origin);
     let result = '';
     const params = await request.json();
     const script = params.script
