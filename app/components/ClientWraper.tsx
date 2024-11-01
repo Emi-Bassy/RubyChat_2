@@ -7,6 +7,7 @@ import ExampleDisplay from './/Example';
 import ProblemDisplay from './ProblemDisplay';
 import CodeInput from './CodeInput';
 import { CodeExecute } from './CodeExcute';
+import { loadWasm } from './wasmLoader';
 
 const examples = [
     {id: 1, text: `例題1: if 文は条件が真である場合に実行されるコードを定義します
@@ -40,29 +41,6 @@ const examples = [
         when "徒歩"
         puts "徒歩での移動時間は40分です"
     `},
-    {id: 4, text: `例題4: for 文は指定した範囲や配列の要素を繰り返すために使います
-        基本的な構文は以下のようになります
-
-        for i in 1..5 do
-            puts i ** 2
-        end
-    `},
-    {id: 5, text: `例題5: while 文は条件が真である限り繰り返し処理を行います
-        基本的な構文は以下のようになります
-        
-        counter = 0
-        while counter < 5
-        puts counter 
-        counter += 1  
-        end`},
-    {id: 6, text: `例題6: times メソッドは、指定した回数だけブロック内の処理を繰り返すためのメソッドです
-        基本的な構文は以下のようになります
-
-        n = 5 # 繰り返したい回数
-        n.times do |i|
-        puts "これは#{i + 1}回目の繰り返しです"
-        end
-        `},
 ]
   
 const problems = [
@@ -73,12 +51,6 @@ const problems = [
         「出席」または「遅刻」の場合は「授業を受けています」`},
     { id: 3, text: `問題3: 注文する飲み物を入力し、その選択に応じて値段を表示するプログラムを書いてください
         なお入力される選択肢は「コーヒー 400円」「紅茶 350円」「ジュース 300円」` },
-    { id: 4, text: `問題4: 1から50までの数の中で、5で割り切れる数をカウントして、
-        その合計を表示するプログラムを作成してください` },
-    { id: 5, text: `問題5: 1から始めて、7未満の数を表示するプログラムを書いてください
-        ただし、3の倍数のときは表示しないようにしてください` },
-    { id: 6, text: `問題6: n回繰り返して、1からnまでの数字の平方を出力してください
-        「○○の平方は○○です」という形で表示してください` },
 ];
 
 interface ClientWraperProps{
@@ -87,6 +59,7 @@ interface ClientWraperProps{
 
 export default function ClientWrapper({ vm }: ClientWraperProps) {
   const [userID, setUserID] = useState('');
+  const [wasmInstance, setWasmInstance] = useState<WebAssembly.Exports | null>(null);
   const [authenticated, setAuthenticated] = useState(false); // 認証状態を管理
   const [userCode, setUserCode] = useState('');
   const [pastCode, setPastCode] = useState<string[]>([]);  // 過去のコードを保存する状態を追加
@@ -105,6 +78,12 @@ export default function ClientWrapper({ vm }: ClientWraperProps) {
       setUserID(savedUserID);
       setAuthenticated(true);  // 認証状態にする
     }
+
+    const fetchWasm = async () => {
+      const loadedVm = await loadWasm();
+      setWasmInstance(loadedVm);
+    };
+    fetchWasm();
   }, []);
 
   const handleLogin = () => {
@@ -203,7 +182,7 @@ export default function ClientWrapper({ vm }: ClientWraperProps) {
       <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
       <ProblemDisplay problemText={problems[currentProblemIndex].text} />
       <CodeInput userCode={userCode} setUserCode={setUserCode} onRunCode={vm} />
-      {vm && <CodeExecute userCode={userCode} vm={vm} />}
+      {vm && <CodeExecute userCode={userCode} vm={wasmInstance} />}
       <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
 
       {feedback.feedback1 && (

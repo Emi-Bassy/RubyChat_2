@@ -1,8 +1,8 @@
-import fs from "fs/promises";
-import { DefaultRubyVM } from "@ruby/wasm-wasi/dist/node";
-
+// components/wasmLoader.js
 export async function loadWasm() {
-    const binary = await fs.readFile("./node_modules/@ruby/3.3-wasm-wasi/dist/ruby.wasm");
-    const module = await WebAssembly.compile(binary);
-    return DefaultRubyVM(module);
-}
+    const response = await fetch("https://cdn.jsdelivr.net/npm/@ruby/3.3-wasm-wasi@2.6.2/dist/ruby+stdlib.wasm"); // CDNからWASMを取得
+    const wasmArrayBuffer = await response.arrayBuffer();
+    const wasmModule = await WebAssembly.instantiate(wasmArrayBuffer);
+    return wasmModule.instance.exports; // WASMのエクスポートを返す
+  }
+  
