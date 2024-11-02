@@ -11,14 +11,10 @@ const openai = new OpenAI({
 });
 
 const pool = new Pool({
+    connectionString: `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:6543/${process.env.POSTGRES_DATABASE}`,
     ssl: {
         rejectUnauthorized: false,
     },
-    host: process.env.POSTGRES_HOST,
-    port: 6543,
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DATABASE,
 });
 
 export async function POST(req: Request) {
