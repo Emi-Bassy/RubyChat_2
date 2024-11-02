@@ -50,7 +50,7 @@ export async function POST(req: Request) {
                 #Steps
                 1. 問題文 ${problemText} を受け取ります
                 2. 現在のコード ${userCode} を受け取ります
-                3. 現在の回答 ${executionResult} を受け取ります
+                3. 実行結果 ${executionResult} を受け取ります
                 4. ${userCode} と ${executionResult} から正誤を判定します
                 5. 最低限のコードが書けていれば正解にします
                 6. 省略可能な then や ; はなくても正解とし、解説には含めません

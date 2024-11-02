@@ -13,42 +13,40 @@ const examples = [
     {id: 1, text: `例題1: if 文は条件が真である場合に実行されるコードを定義します
         基本的な構文は以下のようになります
 
-        age = 20 # ここは任意の整数で変更してもよい
+        age = 20 # ここは任意の整数を入れられる変数です
         if age >= 18
             puts "成人です"
         else
             puts "未成年です"
         end
     `},
-    {id: 2, text: `例題2: unless 文は条件が偽である場合に実行されるコードを定義します
-        基本的な構文は以下のようになります
+    {id: 2, text: `例題2: for 文は指定した範囲の要素を繰り返すために使います
+      基本的な構文は以下のようになります
 
-        number = gets.chomp # ユーザからの入力値
-        unless number > 5
-        puts '数は5以下です'
-        end
-    `},
+      for i in 1..5 do # ここは1~5の数字を「i」という箱に入れて
+        puts i ** 2    # iに入った1~5の数字に、順番に2をかけて表示します
+      end
+  `},
     {id: 3, text: `例題3: case 文は特定の条件に基づいて複数の分岐を行う際に使用します
         基本的な構文は以下のようになります
         
-        puts "大学に通うための交通手段を入力してください（例: 電車, 自転車, 徒歩）"
-        transportation = gets.chomp
-        case transportation
-        when "電車"
-        puts "電車での移動時間は60分です"
-        when "自転車"
-        puts "自転車での移動時間は20分です"
-        when "徒歩"
-        puts "徒歩での移動時間は40分です"
+        puts "よく利用する交通手段を教えてください（例: 電車, 自転車, 徒歩）"
+        move = gets.chomp                     # ユーザからの入力を受け取り
+                                                moveという箱に入れます
+        case move                             # moveの中身に応じて表示します
+          when "電車"                          # "電車"が入っていたら
+            puts "電車での移動時間は60分です"     # 60分と表示します
+          when "自転車"                          # "自転車"が入っていたら
+              puts "自転車での移動時間は20分です"   # 20分と表示します
+          when "徒歩"                            # "徒歩"が入っていたら
+              puts "徒歩での移動時間は40分です"     # 40分と表示します
     `},
 ]
   
 const problems = [
     { id: 1, text: `問題1: 成績が60以上なら「合格」それ未満では「不合格」と表示するプログラムを書いてください` },
-    { id: 2, text: `問題2: ユーザーから出席状況を入力させ、その入力に応じてメッセージを表示してください
-        なお unless を用いて解いてください
-        「欠席」の場合は「授業を受けていません」
-        「出席」または「遅刻」の場合は「授業を受けています」`},
+    { id: 2, text: `問題2: 1から50までの数の中で、5で割り切れる数をカウントして、
+      その合計を表示するプログラムを作成してください` },
     { id: 3, text: `問題3: 注文する飲み物を入力し、その選択に応じて値段を表示するプログラムを書いてください
         なお入力される選択肢は「コーヒー 400円」「紅茶 350円」「ジュース 300円」` },
 ];
@@ -59,7 +57,7 @@ interface ClientWraperProps{
 
 export default function ClientWrapper() {
   const [userID, setUserID] = useState('');
-  const [wasmInstance, setWasmInstance] = useState<WebAssembly.ExportValue | null>(null);
+  const [executionResult, setExecutionResult] = useState('');
   const [rubyVM, setRubyVM] = useState<any>(null);
   const [authenticated, setAuthenticated] = useState(false); // 認証状態を管理
   const [userCode, setUserCode] = useState('');
@@ -69,6 +67,8 @@ export default function ClientWrapper() {
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
   const router = useRouter();
+  const handleExecutionResult = (result: string) => setExecutionResult(result);
+
 
   useEffect(() => {
     localStorage.removeItem('userId')
@@ -122,8 +122,13 @@ export default function ClientWrapper() {
   }
 
   const executeRubyCode = async (code: string) => {
-    const response = await axios.post('/api/executeRuby', { code });
-    return response.data.result;
+    try {
+      const response = await axios.post('/api/executeRuby', { code });
+      return response.data.result; // Ensure this returns the execution result
+    } catch (error) {
+      console.error("Error executing Ruby code:", error);
+      return "Execution failed";
+    }
   };
 
   const handleSubmit = async () => {
@@ -137,7 +142,7 @@ export default function ClientWrapper() {
       const response = await axios.post('/api/chatgpt', {
         userID,
         userCode,
-        rubyResult,
+        executionResult: rubyResult,
         problemNumber: problems[currentProblemIndex].id,
         problemText: problems[currentProblemIndex].text,
         pastCode: pastCode.join('\n\n'),
@@ -177,7 +182,7 @@ export default function ClientWrapper() {
       <ExampleDisplay exampleText={examples[currentProblemIndex].text} />
       <ProblemDisplay problemText={problems[currentProblemIndex].text} />
       <CodeInput userCode={userCode} setUserCode={setUserCode} />
-      <CodeExecute userCode={userCode}/>
+      <CodeExecute userCode={userCode} onResult={handleExecutionResult} />
       <button onClick={handleSubmit} className="btn btn-primary mt-4">送信</button>
 
       {feedback.feedback1 && (
