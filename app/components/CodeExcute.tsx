@@ -34,7 +34,7 @@ export function CodeExecute({ userCode }: CodeExecuteProps) {
 
   return (
     <div>
-      <button onClick={handleRunCode}>実行</button>
+      <button onClick={handleRunCode} className="btn btn-primary mt-4">実行</button>
       <div style={{whiteSpace: "pre-wrap"}}>結果： {output}</div>
     </div>
   );
